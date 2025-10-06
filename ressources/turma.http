@@ -1,0 +1,86 @@
+### TESTAR AS ROTAS DE TURMAS
+# @name login
+POST http://localhost:50010/auth/login HTTP/1.1
+content-type: application/json
+
+{
+    "username": "admin@projeto.com.br",
+    "password": "123456"
+}
+
+###
+
+@authToken = {{login.response.body.$.token}}
+@baseUrl = http://localhost:50010/turmas
+
+### LISTAR TODAS AS TURMAS
+GET {{baseUrl}}/ HTTP/1.1
+Authorization: Bearer {{authToken}}
+
+### LISTAR TURMAS COM PAGINAÇÃO
+GET {{baseUrl}}?page=1&limit=10 HTTP/1.1
+Authorization: Bearer {{authToken}}
+
+### CONSULTAR TURMA POR ID
+GET {{baseUrl}}/1 HTTP/1.1
+Authorization: Bearer {{authToken}}
+
+### CRIAR TURMA
+POST {{baseUrl}} HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Turma A",
+  "instituicao": "1",
+  "serie": "1",
+  "ano": "2025",
+  "ativo": true
+}
+
+### CRIAR OUTRA TURMA
+POST {{baseUrl}} HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Turma B",
+  "instituicao": "1",
+  "serie": "2",
+  "ano": "2025",
+  "ativo": true
+}
+
+### ATUALIZAR TURMA
+PUT {{baseUrl}}/1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Turma A - Modificada",
+  "instituicao": "2",
+  "serie": "1",
+  "ano": "2025",
+  "ativo": true
+}
+
+### ATUALIZAR PARCIALMENTE TURMA (apenas alguns campos)
+PUT {{baseUrl}}/1 HTTP/1.1
+content-type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+  "name": "Turma A - 2025",
+  "serie": "3",
+  "ano": "2025"
+}
+
+### DESATIVAR TURMA
+DELETE {{baseUrl}}/1 HTTP/1.1
+Authorization: Bearer {{authToken}}
+
+### LISTAR TURMAS PARA SELECT
+GET {{baseUrl}}/list HTTP/1.1
+Authorization: Bearer {{authToken}}
+
+

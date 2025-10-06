@@ -1,0 +1,2 @@
+- [**[BACKEND] Versionamento** - Adicionando versionamento no ci/cd.](https://trello.com/c/2jAYMh9L)
+- [**[BACKEND] CRUD TURMA_PROFESSOR** - Adicionando crud para vinculo turma-professor.](https://trello.com/c/EUPGix3F)

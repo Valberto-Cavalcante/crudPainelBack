@@ -1,0 +1,56 @@
+@baseUrl = http://localhost:50010
+@authToken = {{COLE_AQUI_O_TOKEN_JWT}}
+
+### Login (conteúdo) — retorna token em data.token
+# @name loginConteudo
+POST {{baseUrl}}/auth/login/conteudo
+Content-Type: application/json
+
+{
+  "email": "superadmin@educandus.local",
+  "senha": "admin123"
+}
+
+### Me (funciona com Bearer ou cookie)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{authToken}}
+
+### Listar usuários (admin)
+GET {{baseUrl}}/users
+Authorization: Bearer {{authToken}}
+
+### Obter usuário por ID (admin)
+GET {{baseUrl}}/users/1
+Authorization: Bearer {{authToken}}
+
+### Criar usuário (admin)
+POST {{baseUrl}}/users
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "email": "novo@teste.com",
+  "userName": "novo",
+  "nome": "Novo Usuário",
+  "roles": ["conteudo"],
+  "ativo": true,
+  "senha": "abc12345"
+}
+
+### Atualizar usuário (admin)
+PUT {{baseUrl}}/users/1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "nome": "Usuário Editado",
+  "roles": ["admin"]
+}
+
+### Deletar usuário (admin)
+DELETE {{baseUrl}}/users/1
+Authorization: Bearer {{authToken}}
+
+### Reativar usuário (admin)
+PATCH {{baseUrl}}/users/1/reactivate
+Authorization: Bearer {{authToken}}

@@ -1,0 +1,44 @@
+@baseUrl = http://localhost:50010
+@authToken = {{COLE_AQUI_O_TOKEN_JWT}}
+
+### Login (conteúdo)
+# @name loginConteudo
+POST {{baseUrl}}/auth/login/conteudo
+Content-Type: application/json
+
+{
+  "email": "superadmin@educandus.local",
+  "senha": "admin123"
+}
+
+### Listar vínculos
+GET {{baseUrl}}/vinculos
+Authorization: Bearer {{authToken}}
+
+### Obter vínculo por ID
+GET {{baseUrl}}/vinculos/1
+Authorization: Bearer {{authToken}}
+
+### Criar vínculo (admin)
+POST {{baseUrl}}/vinculos
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "instituicaoId": 1,
+  "ativo": true
+}
+
+### Atualizar vínculo (admin)
+PUT {{baseUrl}}/vinculos/1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "ativo": false
+}
+
+### Deletar vínculo (admin)
+DELETE {{baseUrl}}/vinculos/1
+Authorization: Bearer {{authToken}}

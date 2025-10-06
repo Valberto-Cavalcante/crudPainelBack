@@ -1,0 +1,45 @@
+### TESTAR AS ROTAS DOS Series
+# @name login
+POST http://localhost:50010/auth/login HTTP/1.1
+content-type: application/json
+
+{
+    "username": "admin@projeto.com.br",
+    "password": "123456"
+}
+
+###
+
+@authToken = {{login.response.body.$.token}}
+@baseUrl = http://localhost:50010/series
+
+### LISTAR TODOS
+GET {{baseUrl}}/ HTTP/1.1
+
+
+### CONSULTAR POR ID
+GET {{baseUrl}}/1 HTTP/1.1
+
+
+### CRIAR serie
+POST {{baseUrl}} HTTP/1.1
+content-type: application/json
+
+{
+  "name": "Matemática",
+  "nivel": "1"
+}
+
+### ATUALIZAR serie
+PUT {{baseUrl}}/1 HTTP/1.1
+content-type: application/json
+
+{
+  "name": "Matemática",
+  "nivel": "1"
+}
+
+### REMOVER serie (SOFT DELETE)
+DELETE {{baseUrl}}/1 HTTP/1.1
+
+

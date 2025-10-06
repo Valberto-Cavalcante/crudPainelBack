@@ -1,0 +1,53 @@
+@baseUrl = http://localhost:50010
+@authToken = {{COLE_AQUI_O_TOKEN_JWT}}
+
+### Login (conteúdo) — retorna token em data.token
+# @name loginConteudo
+POST {{baseUrl}}/auth/login/conteudo
+Content-Type: application/json
+
+{
+  "email": "superadmin@educandus.local",
+  "senha": "admin123"
+}
+
+### Listar instituições
+GET {{baseUrl}}/instituicoes
+Authorization: Bearer {{authToken}}
+
+### Obter instituição por ID
+GET {{baseUrl}}/instituicoes/1
+Authorization: Bearer {{authToken}}
+
+### Criar instituição (admin)
+POST {{baseUrl}}/instituicoes
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "nome": "Instituição X",
+  "tipo": "escola",
+  "id_pai": null,
+  "ativo": true
+}
+
+### Atualizar instituição (admin)
+PUT {{baseUrl}}/instituicoes/1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "nome": "Instituição X Editada"
+}
+
+### Deletar instituição (admin)
+DELETE {{baseUrl}}/instituicoes/1
+Authorization: Bearer {{authToken}}
+
+### Buscar por tipo
+GET {{baseUrl}}/instituicoes/tipo/escola
+Authorization: Bearer {{authToken}}
+
+### Buscar filhas
+GET {{baseUrl}}/instituicoes/1/filhas
+Authorization: Bearer {{authToken}}

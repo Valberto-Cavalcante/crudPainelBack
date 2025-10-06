@@ -1,0 +1,146 @@
+@baseUrl = http://localhost:50010
+@authToken = {{COLE_AQUI_O_TOKEN_JWT}}
+
+@idTurma = 1
+@idProfessor = 236045
+@vinculoId = 1
+@role = titular
+@disciplina = Matemática
+@horario = Seg/Qua 10:00–11:40
+
+###
+### Auth
+###
+
+### Login (conteúdo) — retorna token em data.token
+# @name loginConteudo
+POST {{baseUrl}}/auth/login/conteudo
+Content-Type: application/json
+
+{
+  "email": "superadmin@fakeemail.com",
+  "senha": "admin123"
+}
+
+### Me (funciona com Bearer ou cookie)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{authToken}}
+
+#######################################################################
+# OPCIONAL — criar Professor e Turma para testes
+#######################################################################
+
+### Criar usuário Professor (admin) — payload compatível com validações atuais
+POST {{baseUrl}}/users
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "email": "prof{{idProfessor}}@example.com",
+  "userName": "prof{{idProfessor}}",
+  "nome": "Professor {{idProfessor}}",
+  "roles": ["professor"],
+  "ativo": true,
+  "senha": "abc12345",
+  "id": {{idProfessor}},
+
+  "perfil": "professor",
+  "matricula": "MAT-{{idProfessor}}",
+  "ra": "RA-{{idProfessor}}",
+  "dataNascimento": "1985-12-10",
+  "formacao": "Licenciatura em {{disciplina}}",
+  "experiencia": "5 anos",
+  "especialidade": "{{disciplina}}",
+  "responsaveis": ""
+}
+
+### Criar Turma (admin) — ANO **string** (compatível com validação .trim do backend)
+POST {{baseUrl}}/turmas
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "Turma Exemplo {{idTurma}}",
+  "instituicao": "Escola Exemplo",
+  "serie": "9º Ano",
+  "ano": "2025",
+  "ativo": true
+}
+
+#######################################################################
+# CRUD Turma ↔ Professor (com disciplina e horário)
+#######################################################################
+
+### Listar vínculos (paginado) — JWT
+GET {{baseUrl}}/turma-professores?page=1&limit=10
+Authorization: Bearer {{authToken}}
+
+### Obter vínculo por ID — ADMIN
+GET {{baseUrl}}/turma-professores/{{vinculoId}}
+Authorization: Bearer {{authToken}}
+
+### Criar vínculo Turma↔Professor — ADMIN (rota direta)
+# Campos obrigatórios: idTurma, idProfessor, disciplina, horario
+POST {{baseUrl}}/turma-professores
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "idTurma": {{idTurma}},
+  "idProfessor": {{idProfessor}},
+  "role": "{{role}}",
+  "disciplina": "{{disciplina}}",
+  "horario": "{{horario}}"
+}
+
+### (Alternativa) Criar vínculo a partir da Turma — ADMIN (rota nested)
+# Campos obrigatórios: idProfessor, disciplina, horario
+POST {{baseUrl}}/turmas/{{idTurma}}/professores
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "idProfessor": {{idProfessor}},
+  "role": "{{role}}",
+  "disciplina": "{{disciplina}}",
+  "horario": "{{horario}}"
+}
+
+### Atualizar vínculo (disciplina/horário/role/ativo) — ADMIN
+# Use o ID do VÍNCULO (vinculoId) — não o id do professor
+PUT {{baseUrl}}/turma-professores/{{vinculoId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "disciplina": "Matemática Avançada",
+  "horario": "Ter/Qui 14:00–15:40",
+  "role": "assistente",
+  "ativo": true
+}
+
+### Desativar vínculo (soft delete por ID do vínculo) — ADMIN
+DELETE {{baseUrl}}/turma-professores/{{vinculoId}}
+Authorization: Bearer {{authToken}}
+
+### Reativar vínculo (POST novamente) — ADMIN
+# Se o vínculo existir inativo, será reativado já atualizando disciplina/horario/role
+POST {{baseUrl}}/turma-professores
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "idTurma": {{idTurma}},
+  "idProfessor": {{idProfessor}},
+  "disciplina": "{{disciplina}}",
+  "horario": "{{horario}}",
+  "role": "{{role}}"
+}
+
+### Listar professores de uma Turma (retorna disciplina/horario) — JWT
+GET {{baseUrl}}/turmas/{{idTurma}}/professores
+Authorization: Bearer {{authToken}}
+
+### Desativar vínculo por (turma, professor) — ADMIN (nested)
+DELETE {{baseUrl}}/turmas/{{idTurma}}/professores/{{idProfessor}}
+Authorization: Bearer {{authToken}}

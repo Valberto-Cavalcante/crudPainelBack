@@ -1,0 +1,43 @@
+# Arquivos temporários de migrations
+*.tmp
+*.temp
+*.bak
+
+# Logs de execução
+*.log
+migration-logs/
+
+# Arquivos de backup automático
+backups/
+*.backup
+
+# Arquivos de configuração local
+config.local.js
+.env.migrations
+
+# Arquivos de teste
+test-*.js
+*.test.js
+
+# Arquivos de desenvolvimento
+dev-*.js
+*.dev.js
+
+# Arquivos de rollback manual
+rollback-*.js
+
+# Arquivos de migração temporários
+temp-*.js
+tmp-*.js
+
+# Arquivos de lock
+.migration.lock
+migration.lock
+
+# Diretórios de cache
+.cache/
+cache/
+
+# Arquivos de estado
+.migration-state
+migration-state.json 

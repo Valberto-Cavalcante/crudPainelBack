@@ -1,0 +1,50 @@
+@baseUrl = http://localhost:50010
+@authToken = {{COLE_AQUI_O_TOKEN_JWT}}
+
+### Login (conteúdo)
+# @name loginConteudo
+POST {{baseUrl}}/auth/login/conteudo
+Content-Type: application/json
+
+{
+  "email": "superadmin@educandus.local",
+  "senha": "admin123"
+}
+
+### Listar itens (admin)
+GET {{baseUrl}}/menu-itens
+Authorization: Bearer {{authToken}}
+
+### Obter item por ID (admin)
+GET {{baseUrl}}/menu-itens/1
+Authorization: Bearer {{authToken}}
+
+### Criar item (admin)
+POST {{baseUrl}}/menu-itens
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "menuId": 1,
+  "titulo": "Dashboard",
+  "rota": "/dashboard",
+  "ordem": 1,
+  "ativo": true
+}
+
+### Atualizar item (admin)
+PUT {{baseUrl}}/menu-itens/1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "titulo": "Dashboard (editado)"
+}
+
+### Soft delete (admin)
+PATCH {{baseUrl}}/menu-itens/1/soft-delete
+Authorization: Bearer {{authToken}}
+
+### Deletar item (admin)
+DELETE {{baseUrl}}/menu-itens/1
+Authorization: Bearer {{authToken}}

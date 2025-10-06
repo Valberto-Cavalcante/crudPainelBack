@@ -1,0 +1,43 @@
+@baseUrl = http://localhost:50010
+@authToken = {{COLE_AQUI_O_TOKEN_JWT}}
+
+### Login (conteúdo)
+# @name loginConteudo
+POST {{baseUrl}}/auth/login/conteudo
+Content-Type: application/json
+
+{
+  "email": "superadmin@educandus.local",
+  "senha": "admin123"
+}
+
+### Listar menus (admin)
+GET {{baseUrl}}/menus
+Authorization: Bearer {{authToken}}
+
+### Obter menu por ID (admin)
+GET {{baseUrl}}/menus/1
+Authorization: Bearer {{authToken}}
+
+### Criar menu (admin)
+POST {{baseUrl}}/menus
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "nome": "Menu Principal",
+  "descricao": "Menu do sistema"
+}
+
+### Atualizar menu (admin)
+PUT {{baseUrl}}/menus/1
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "descricao": "Menu do sistema (editado)"
+}
+
+### Deletar menu (admin)
+DELETE {{baseUrl}}/menus/1
+Authorization: Bearer {{authToken}}
