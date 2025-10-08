@@ -11,9 +11,13 @@
 // - DEFAULT_ROLE_COLORS: cores padrão para cada role.
 //
 // Lista centralizada de roles do sistema
+
+
+// 07/10/2025 : havia confusão do role do programa com role do LCMS
+//      COM ISSO: esse array perde o sentido
 const ROLES = {
     ADMIN: 'admin',
-    SUPERVISOR: 'supervisor', 
+    SUPERVISOR: 'supervisor',
     COORDENADOR: 'coordenador',
     PROFESSOR: 'professor',
     ALUNO: 'aluno'
@@ -33,8 +37,10 @@ const DEFAULT_ROLE_COLORS = {
 
 // Validação de roles
 function isValidRole(role) {
-    return ROLES_ARRAY.includes(role);
+    return /^[a-z_]+$/.test(role);
+    // return ROLES_ARRAY.includes(role);
 }
+
 
 // Validação de array de roles
 function validateRolesArray(roles) {

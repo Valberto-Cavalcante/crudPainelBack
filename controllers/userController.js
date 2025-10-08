@@ -16,14 +16,14 @@ const db = require('../db');
 const PaginationUtils = require('../utils/pagination');
 
 class UserController {
-    
+
     // Função para validar dados do usuário
     validateUserData(userData, isUpdate = false) {
         const errors = [];
-        
+
         if (!isUpdate) {
             // Validação de email ou userName (pelo menos um deve estar presente)
-            if ((!userData.email || userData.email.trim() === '') && 
+            if ((!userData.email || userData.email.trim() === '') &&
                 (!userData.userName || userData.userName.trim() === '')) {
                 errors.push('email ou userName é obrigatório');
             }
@@ -37,11 +37,11 @@ class UserController {
                 errors.push('roles é obrigatório');
             }
         }
-        
+
         if (userData.senha && userData.senha.length < 6) {
             errors.push('senha deve ter pelo menos 6 caracteres');
         }
-        
+
         if (userData.userName && userData.userName.length < 3) {
             errors.push('userName deve ter pelo menos 3 caracteres');
         }
@@ -51,30 +51,30 @@ class UserController {
         }
         let errorRoles = [];
         // Validação dos roles
-        if (userData.roles) {
-            const rolesArray = Array.isArray(userData.roles) ? userData.roles : [userData.roles];
-            for (const role of rolesArray) {
-                if (!ROLES_ARRAY.includes(role)) {
-                    errorRoles.push(role);
-                }
-            }
-            if (errorRoles.length == rolesArray.length) {
-                errors.push(`O usuário deve ter pelo menos um desses roles ${ROLES_ARRAY.join(', ')}`);
-            }
-        }
-        
+        // if (userData.roles) {
+        //     const rolesArray = Array.isArray(userData.roles) ? userData.roles : [userData.roles];
+        //     for (const role of rolesArray) {
+        //         if (!ROLES_ARRAY.includes(role)) {
+        //             errorRoles.push(role);
+        //         }
+        //     }
+        //     if (errorRoles.length == rolesArray.length) {
+        //         errors.push(`O usuário deve ter pelo menos um desses roles ${ROLES_ARRAY.join(', ')}`);
+        //     }
+        // }
+
         return errors;
     }
-    
+
     // Criar novo usuário
     async createUser(req, res) {
         try {
-            const { 
-                email, 
-                userName, 
-                senha, 
-                nome, 
-                roles, 
+            const {
+                email,
+                userName,
+                senha,
+                nome,
+                roles,
                 ativo = true,
                 perfil,
                 matricula,
@@ -88,12 +88,12 @@ class UserController {
             } = req.body;
 
             // Validação dos dados usando o controller
-            const userData = { 
-                email, 
-                userName, 
-                senha, 
-                nome, 
-                roles, 
+            const userData = {
+                email,
+                userName,
+                senha,
+                nome,
+                roles,
                 ativo,
                 perfil,
                 matricula,
@@ -105,11 +105,11 @@ class UserController {
                 responsaveis
             };
             const validationErrors = this.validateUserData(userData, false);
-            
+
             if (validationErrors.length > 0) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: validationErrors.join(', ') 
+                return res.status(400).json({
+                    success: false,
+                    error: validationErrors.join(', ')
                 });
             }
 
@@ -120,7 +120,7 @@ class UserController {
             // Determina o userName baseado no email ou userName fornecido
             let finalUserName;
             let finalEmail;
-            
+
             if (userName) {
                 finalUserName = userName.trim();
                 finalEmail = email ? email.trim() : `${userName.trim()}@example.com`;
@@ -133,18 +133,18 @@ class UserController {
             // Verifica se já existe um usuário com o mesmo userName (ativo ou inativo)
             const testaUserName = await db.findOne("usuarios", { userName: finalUserName });
             if (testaUserName) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: "Já existe um usuário com esse userName: " + finalUserName 
+                return res.status(400).json({
+                    success: false,
+                    error: "Já existe um usuário com esse userName: " + finalUserName
                 });
             }
 
             // Verifica se já existe um usuário com o mesmo email (ativo ou inativo)
             const testaEmail = await db.findOne("usuarios", { email: finalEmail });
             if (testaEmail) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: "Já existe um usuário com esse email: " + finalEmail 
+                return res.status(400).json({
+                    success: false,
+                    error: "Já existe um usuário com esse email: " + finalEmail
                 });
             }
 
@@ -172,10 +172,10 @@ class UserController {
 
             // Insere no banco
             const result = await db.insert("usuarios", newUser, true);
-            
+
             // Busca o usuário criado
             const createdUser = await db.findOne("usuarios", { _id: result.insertedId });
-            
+
             // Formata para o frontend (sem senha_hash)
             const userForFrontend = userModel.formatUserForLogin(createdUser);
 
@@ -199,13 +199,13 @@ class UserController {
     async getAllUsers(req, res) {
         try {
             const { page = 1, limit = 15, filter } = req.query;
-            
+
             // Validar parâmetros de paginação
             const { page: validatedPage, limit: validatedLimit } = PaginationUtils.validatePaginationParams(page, limit);
-            
+
             // Construir query baseada nos filtros separados
             let query = {};
-            
+
             // Filtro de status (ativo/inativo)
             const statusFilter = req.query.status;
             if (statusFilter) {
@@ -219,7 +219,7 @@ class UserController {
                 // Por padrão, mostra apenas usuários ativos
                 query.ativo = true;
             }
-            
+
             // Filtro de roles
             const roleFilter = req.query.role;
             if (roleFilter && roleFilter !== 'all') {
@@ -235,19 +235,19 @@ class UserController {
                     query.roles = { $in: ["supervisor"] };
                 }
             }
-            
+
             // Buscar total de usuários ativos para calcular paginação
             const totalItems = await db.count("usuarios", query);
-            
+
             // Calcular informações de paginação
             const paginationInfo = PaginationUtils.getPaginationInfo(validatedPage, validatedLimit, totalItems);
-            
+
             // Buscar usuários ativos com paginação
-            const users = await db.find("usuarios", query, { 
-                skip: paginationInfo.skip, 
-                limit: paginationInfo.itemsPerPage 
+            const users = await db.find("usuarios", query, {
+                skip: paginationInfo.skip,
+                limit: paginationInfo.itemsPerPage
             });
-            
+
             // Formata todos os usuários para o frontend (sem senha_hash)
             const usersForFrontend = users.map(user => userModel.formatUserForLogin(user));
 
@@ -270,18 +270,18 @@ class UserController {
             const userId = parseInt(req.params.id, 10);
 
             if (isNaN(userId)) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: "ID do usuário deve ser um número válido" 
+                return res.status(400).json({
+                    success: false,
+                    error: "ID do usuário deve ser um número válido"
                 });
             }
 
             const user = await db.findOne("usuarios", { id: userId, ativo: true });
-            
+
             if (!user) {
-                return res.status(404).json({ 
-                    success: false, 
-                    error: "Usuário não encontrado ou inativo" 
+                return res.status(404).json({
+                    success: false,
+                    error: "Usuário não encontrado ou inativo"
                 });
             }
 
@@ -305,12 +305,12 @@ class UserController {
     async updateUser(req, res) {
         try {
             const userId = parseInt(req.params.id, 10);
-            const { 
-                email, 
-                userName, 
-                senha, 
-                nome, 
-                roles, 
+            const {
+                email,
+                userName,
+                senha,
+                nome,
+                roles,
                 ativo,
                 perfil,
                 matricula,
@@ -324,83 +324,83 @@ class UserController {
             } = req.body;
 
             if (isNaN(userId)) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: "ID do usuário deve ser um número válido" 
+                return res.status(400).json({
+                    success: false,
+                    error: "ID do usuário deve ser um número válido"
                 });
             }
 
             // Busca o usuário existente (ativo ou inativo - permite reativação)
             const existingUser = await db.findOne("usuarios", { id: userId });
             if (!existingUser) {
-                return res.status(404).json({ 
-                    success: false, 
-                    error: "Usuário não encontrado" 
+                return res.status(404).json({
+                    success: false,
+                    error: "Usuário não encontrado"
                 });
             }
 
             // Validação dos dados usando o controller
             const userData = { email, userName, senha, nome, roles, ativo };
             const validationErrors = this.validateUserData(userData, true);
-            
+
             if (validationErrors.length > 0) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: validationErrors.join(', ') 
+                return res.status(400).json({
+                    success: false,
+                    error: validationErrors.join(', ')
                 });
             }
 
             // Prepara o objeto de atualização
             const updateData = {};
-            
+
             if (userName !== undefined) {
                 // Verifica se o novo userName já existe em outro usuário
-                const existingUserWithUserName = await db.findOne("usuarios", { 
-                    userName: userName.trim(), 
-                    id: { $ne: userId } 
+                const existingUserWithUserName = await db.findOne("usuarios", {
+                    userName: userName.trim(),
+                    id: { $ne: userId }
                 });
                 if (existingUserWithUserName) {
-                    return res.status(400).json({ 
-                        success: false, 
-                        error: "Já existe outro usuário com esse userName: " + userName 
+                    return res.status(400).json({
+                        success: false,
+                        error: "Já existe outro usuário com esse userName: " + userName
                     });
                 }
                 updateData.userName = userName.trim();
             }
-            
+
             if (email !== undefined) {
                 // Verifica se o novo email já existe em outro usuário
-                const existingUserWithEmail = await db.findOne("usuarios", { 
-                    email: email.trim(), 
-                    id: { $ne: userId } 
+                const existingUserWithEmail = await db.findOne("usuarios", {
+                    email: email.trim(),
+                    id: { $ne: userId }
                 });
                 if (existingUserWithEmail) {
-                    return res.status(400).json({ 
-                        success: false, 
-                        error: "Já existe outro usuário com esse email: " + email 
+                    return res.status(400).json({
+                        success: false,
+                        error: "Já existe outro usuário com esse email: " + email
                     });
                 }
                 updateData.email = email.trim();
             }
-            
+
             if (nome !== undefined) {
                 updateData.nome = nome.trim();
             }
-            
-            if (roles !== undefined) {
-                // Validação dos roles
-                const rolesArray = Array.isArray(roles) ? roles : [roles];
-                for (const role of rolesArray) {
-                    if (!ROLES_ARRAY.includes(role)) {
-                        return res.status(400).json({ 
-                            success: false, 
-                            error: `role '${role}' deve ser: ${ROLES_ARRAY.join(', ')}` 
-                        });
-                    }
-                }
-                updateData.roles = rolesArray;
-            }
-            
+
+            // if (roles !== undefined) {
+            //     // Validação dos roles
+            //     const rolesArray = Array.isArray(roles) ? roles : [roles];
+            //     for (const role of rolesArray) {
+            //         if (!ROLES_ARRAY.includes(role)) {
+            //             return res.status(400).json({
+            //                 success: false,
+            //                 error: `role '${role}' deve ser: ${ROLES_ARRAY.join(', ')}`
+            //             });
+            //         }
+            //     }
+            //     updateData.roles = rolesArray;
+            // }
+
             if (ativo !== undefined) {
                 updateData.ativo = ativo;
             }
@@ -478,18 +478,18 @@ class UserController {
             const userId = parseInt(req.params.id, 10);
 
             if (isNaN(userId)) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: "ID do usuário deve ser um número válido" 
+                return res.status(400).json({
+                    success: false,
+                    error: "ID do usuário deve ser um número válido"
                 });
             }
 
             // Busca o usuário existente
             const existingUser = await db.findOne("usuarios", { id: userId });
             if (!existingUser) {
-                return res.status(404).json({ 
-                    success: false, 
-                    error: "Usuário não encontrado" 
+                return res.status(404).json({
+                    success: false,
+                    error: "Usuário não encontrado"
                 });
             }
 
@@ -526,18 +526,18 @@ class UserController {
             const userId = parseInt(req.params.id, 10);
 
             if (isNaN(userId)) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: "ID do usuário deve ser um número válido" 
+                return res.status(400).json({
+                    success: false,
+                    error: "ID do usuário deve ser um número válido"
                 });
             }
 
             // Busca o usuário existente
             const existingUser = await db.findOne("usuarios", { id: userId });
             if (!existingUser) {
-                return res.status(404).json({ 
-                    success: false, 
-                    error: "Usuário não encontrado" 
+                return res.status(404).json({
+                    success: false,
+                    error: "Usuário não encontrado"
                 });
             }
 
@@ -576,25 +576,25 @@ class UserController {
             // Valida os dados de entrada
             const validation = userModel.validateLoginData(email, senha);
             if (!validation.isValid) {
-                return res.status(400).json({ 
-                    success: false, 
-                    error: validation.errors.join(', ') 
+                return res.status(400).json({
+                    success: false,
+                    error: validation.errors.join(', ')
                 });
             }
 
             // Busca o usuário
-            const user = await db.findOne("usuarios", { 
+            const user = await db.findOne("usuarios", {
                 $or: [
                     { userName: email.trim() },
                     { email: email.trim() }
                 ],
-                ativo: true 
+                ativo: true
             });
 
             if (!user) {
-                return res.status(401).json({ 
-                    success: false, 
-                    error: "Usuário não encontrado" 
+                return res.status(401).json({
+                    success: false,
+                    error: "Usuário não encontrado"
                 });
             }
 
@@ -602,9 +602,9 @@ class UserController {
             const passwordValid = await userModel.comparePassword(senha, user.pass);
 
             if (!passwordValid) {
-                return res.status(401).json({ 
-                    success: false, 
-                    error: "Senha incorreta" 
+                return res.status(401).json({
+                    success: false,
+                    error: "Senha incorreta"
                 });
             }
 

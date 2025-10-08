@@ -50,11 +50,11 @@ routerUser.post('/auth/logout', async (req, res) => {
 routerUser.get('/auth/me', auth.passport.authenticate('jwt', { session: false }), (req, res) => {
     try {
         console.log('🔍 /auth/me - Verificando sessão para usuário:', req.user);
-        
+
         // req.user contém os dados do usuário do token JWT
         const userData = userModel.formatUserForLogin(req.user);
         console.log('✅ /auth/me - Usuário formatado:', userData);
-        
+
         res.json({
             success: true,
             data: {
@@ -76,28 +76,28 @@ routerUser.post('/auth/login', async (req, res, next) => {
     const { email, senha } = req.body;
 
     if (!email || !senha) {
-        return res.status(400).json({ 
-            success: false, 
-            error: "email e senha são obrigatórios" 
+        return res.status(400).json({
+            success: false,
+            error: "email e senha são obrigatórios"
         });
     }
 
     try {
         console.log("login attempt", email);
-        
+
         // Busca o usuário pelo userName ou email
-        const user = await db.findOne("usuarios", { 
+        const user = await db.findOne("usuarios", {
             $or: [
                 { userName: email.trim() },
                 { email: email.trim() }
             ],
-            ativo: true 
+            ativo: true
         });
-
+        console.log(user);
         if (!user) {
-            return res.status(401).json({ 
-                success: false, 
-                error: "Usuário não encontrado" 
+            return res.status(401).json({
+                success: false,
+                error: "Usuário não encontrado"
             });
         }
 
@@ -105,22 +105,22 @@ routerUser.post('/auth/login', async (req, res, next) => {
         const passwordValid = await userModel.comparePassword(senha, user.pass);
 
         if (!passwordValid) {
-            return res.status(401).json({ 
-                success: false, 
-                error: "Senha incorreta" 
+            return res.status(401).json({
+                success: false,
+                error: "Senha incorreta"
             });
         }
 
         // Formata para o frontend usando o model (sem senha_hash para login)
         const userForFrontend = userModel.formatUserForLogin(user);
-        
+
         // Gerar token JWT
         const token = auth.jwt.sign(
-            { id: userForFrontend.id, userName: userForFrontend.userName, roles: userForFrontend.roles},
+            { id: userForFrontend.id, userName: userForFrontend.userName, roles: userForFrontend.roles },
             auth.jwtOptions.secretOrKey,
             { expiresIn: '7d' }
         );
-        
+
         // Definir cookie HttpOnly seguro
         res.cookie('token', token, {
             httpOnly: true,
@@ -129,7 +129,7 @@ routerUser.post('/auth/login', async (req, res, next) => {
             maxAge: 7 * 24 * 60 * 60 * 1000, // 7 dias
             path: '/'
         });
-        
+
         res.json({
             success: true,
             message: "Login realizado com sucesso",
@@ -151,28 +151,28 @@ routerUser.post('/auth/login/conteudo', async (req, res, next) => {
     const { email, senha } = req.body;
 
     if (!email || !senha) {
-        return res.status(400).json({ 
-            success: false, 
-            error: "email e senha são obrigatórios" 
+        return res.status(400).json({
+            success: false,
+            error: "email e senha são obrigatórios"
         });
     }
 
     try {
         console.log("login attempt", email);
-        
+
         // Busca o usuário pelo userName ou email
-        const user = await db.findOne("usuarios", { 
+        const user = await db.findOne("usuarios", {
             $or: [
                 { userName: email.trim() },
                 { email: email.trim() }
             ],
-            ativo: true 
+            ativo: true
         });
 
         if (!user) {
-            return res.status(401).json({ 
-                success: false, 
-                error: "Usuário não encontrado" 
+            return res.status(401).json({
+                success: false,
+                error: "Usuário não encontrado"
             });
         }
 
@@ -180,12 +180,12 @@ routerUser.post('/auth/login/conteudo', async (req, res, next) => {
         const passwordValid = await userModel.comparePassword(senha, user.pass);
 
         if (!passwordValid) {
-            return res.status(401).json({ 
-                success: false, 
-                error: "Senha incorreta" 
+            return res.status(401).json({
+                success: false,
+                error: "Senha incorreta"
             });
         }
-        
+
         // Buscar menu correspondente ao primeiro role do usuário
         let userMenu = null;
         if (user.roles && user.roles.length > 0) {
@@ -194,14 +194,14 @@ routerUser.post('/auth/login/conteudo', async (req, res, next) => {
             // Retorna apenas o menusItensArray formatado no padrão específico do frontend
             userMenu = menu ? menuModel.formatMenusItensArrayForFrontend(menu.menusItensArray) : null;
         }
-        
+
         // Gerar token JWT
         const token = auth.jwt.sign(
-            { id: user.id, roles: user.roles},
+            { id: user.id, roles: user.roles },
             auth.jwtOptions.secretOrKey,
             { expiresIn: '7d' }
         );
-        
+
         res.json({
             success: true,
             message: "Login realizado com sucesso",
@@ -222,30 +222,30 @@ routerUser.put('/auth/password', auth.passport.authenticate('jwt', { session: fa
     const { userName, oldPass, newPass } = req.body;
 
     if (!userName || !oldPass || !newPass) {
-        return res.status(400).json({ 
-            success: false, 
-            error: "userName, senha atual e nova senha são obrigatórios" 
+        return res.status(400).json({
+            success: false,
+            error: "userName, senha atual e nova senha são obrigatórios"
         });
     }
 
     if (newPass.length < 6) {
-        return res.status(400).json({ 
-            success: false, 
-            error: "Nova senha deve ter pelo menos 6 caracteres" 
+        return res.status(400).json({
+            success: false,
+            error: "Nova senha deve ter pelo menos 6 caracteres"
         });
     }
 
     try {
         // Verifica se o usuário existe
-        const user = await db.findOne("usuarios", { 
-            userName: userName.trim(), 
-            ativo: true 
+        const user = await db.findOne("usuarios", {
+            userName: userName.trim(),
+            ativo: true
         });
 
         if (!user) {
-            return res.status(404).json({ 
-                success: false, 
-                error: "Usuário não encontrado" 
+            return res.status(404).json({
+                success: false,
+                error: "Usuário não encontrado"
             });
         }
 
@@ -253,9 +253,9 @@ routerUser.put('/auth/password', auth.passport.authenticate('jwt', { session: fa
         const oldPasswordValid = await userModel.comparePassword(oldPass, user.pass);
 
         if (!oldPasswordValid) {
-            return res.status(401).json({ 
-                success: false, 
-                error: "Senha atual incorreta" 
+            return res.status(401).json({
+                success: false,
+                error: "Senha atual incorreta"
             });
         }
 
@@ -283,9 +283,9 @@ routerUser.put('/auth/password', auth.passport.authenticate('jwt', { session: fa
 routerUser.get('/userstodos/:id?', auth.passport.authenticate('jwt', { session: false }), requireAdmin, async (req, res, next) => {
     try {
         const xId = req.params.id;
-        
+
         let query = {};
-        
+
         if (xId === "ativos") {
             query.ativo = true;
         } else if (xId === "admin") {
@@ -318,7 +318,7 @@ routerUser.get('/userstodos/:id?', auth.passport.authenticate('jwt', { session: 
         ];
 
         const users = await db.findColecaoAgg("usuarios", aggUsers);
-        
+
         // Retorna diretamente um array, compatível com frontend que faz users.map
         res.json(Array.isArray(users) ? users : (users ? [users] : []));
 

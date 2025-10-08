@@ -21,13 +21,13 @@ const userSchema = {
     roles: { type: 'array', required: true }, // array de roles
     ativo: { type: 'boolean', required: true, default: true },
     perfil: { type: 'string', required: false },
-    matricula: { type: 'string', required: false,default:null },
-    ra: { type: 'string', required: false,default:null },
-    dataNascimento: { type: 'date', required: false,default:null },
-    formacao: { type: 'string', required: false,default:null },
-    experiencia: { type: 'string', required: false,default:null },
-    especialidade: { type: 'string', required: false,default:null },
-    responsaveis: { type: 'string', required: false,default:null },
+    matricula: { type: 'string', required: false, default: null },
+    ra: { type: 'string', required: false, default: null },
+    dataNascimento: { type: 'date', required: false, default: null },
+    formacao: { type: 'string', required: false, default: null },
+    experiencia: { type: 'string', required: false, default: null },
+    especialidade: { type: 'string', required: false, default: null },
+    responsaveis: { type: 'string', required: false, default: null },
     extra: { type: 'object', required: false },
     __new: { type: 'date', required: true },
     __editado: { type: 'date', required: false }
@@ -37,21 +37,21 @@ const userSchema = {
 function validateUser(user) {
     console.log(user)
     const errors = [];
-    
+
     for (const [field, config] of Object.entries(userSchema)) {
         if (config.required && !user.hasOwnProperty(field)) {
             errors.push(`Campo '${field}' é obrigatório`);
         }
-        
+
         if (user.hasOwnProperty(field)) {
             const value = user[field];
             const expectedType = config.type;
-            
+
             // Se o campo não é obrigatório e é null/undefined, não valida o tipo
             if (!config.required && (value === null || value === undefined)) {
                 continue;
             }
-            
+
             // Validação de tipo
             if (expectedType === 'string' && typeof value !== 'string' && value !== null) {
                 errors.push(`Campo '${field}' deve ser uma string`);
@@ -68,7 +68,7 @@ function validateUser(user) {
             }
         }
     }
-    
+
     return {
         isValid: errors.length === 0,
         errors
@@ -83,6 +83,7 @@ async function hashPassword(password) {
 
 // Função para comparar senhas
 async function comparePassword(password, hashedPassword) {
+    console.log(password)
     return await bcrypt.compare(password, hashedPassword);
 }
 
@@ -93,26 +94,26 @@ async function createUser(userData) {
     if (!validation.isValid) {
         throw new Error(`Dados inválidos: ${validation.errors.join(', ')}`);
     }
-    
+
     // Se a senha não estiver hasheada, hash ela
     if (userData.pass && !userData.pass.startsWith('$2a$') && !userData.pass.startsWith('$2b$')) {
         userData.pass = await hashPassword(userData.pass);
     }
-    
+
     // Adiciona timestamps se não existirem
     if (!userData.__new) {
         userData.__new = new Date();
     }
-    
+
     if (!userData.__editado) {
         userData.__editado = new Date();
     }
-    
+
     // Define valores padrão
     if (userData.ativo === undefined) {
         userData.ativo = true;
     }
-    
+
     // Garante que roles seja sempre um array
     if (!userData.roles) {
         userData.roles = [];
@@ -120,7 +121,7 @@ async function createUser(userData) {
         // Se roles for uma string, converte para array
         userData.roles = [userData.roles];
     }
-    
+
     return userData;
 }
 
@@ -129,7 +130,7 @@ async function generateUserId(db) {
     try {
         // Busca o último usuário cadastrado
         const regUltimo = await db.acharUltimo("usuarios", {});
-        
+
         let idUsuario;
         if (regUltimo && regUltimo.id) {
             // Se existe usuário, pega o ID do último e soma 1
@@ -138,13 +139,13 @@ async function generateUserId(db) {
             // Se não existe nenhum usuário, começa com ID 1
             idUsuario = 1;
         }
-        
+
         // Verifica se o ID gerado já existe (por segurança)
         const existingUser = await db.findOne("usuarios", { id: idUsuario });
         if (existingUser) {
             throw new Error("Erro ao gerar ID único para o usuário");
         }
-        
+
         return idUsuario;
     } catch (error) {
         throw new Error(`Erro ao gerar ID do usuário: ${error.message}`);
@@ -154,7 +155,7 @@ async function generateUserId(db) {
 // Função para formatar usuário para o frontend (remove senha)
 function formatUserForFrontend(user) {
     const { pass, ...userWithoutPass } = user;
-    
+
     return {
         id: userWithoutPass.id,
         email: userWithoutPass.email,
@@ -179,7 +180,7 @@ function formatUserForFrontend(user) {
 // Função para formatar usuário para login (sem senha_hash)
 function formatUserForLogin(user) {
     const { pass, ...userWithoutPass } = user;
-    
+
     return {
         id: userWithoutPass.id,
         email: userWithoutPass.email,
@@ -204,7 +205,7 @@ function formatUserForLogin(user) {
 // Função para formatar usuário para login (sem senha_hash)
 function formatUserForLoginConteudo(user) {
     const { pass, ...userWithoutPass } = user;
-    
+
     return {
         id_usu: userWithoutPass.id,
         roles: userWithoutPass.roles, // array de roles
@@ -215,27 +216,27 @@ function formatUserForLoginConteudo(user) {
 async function updateUser(userData, updates) {
     // Adiciona timestamp de atualização
     updates.__editado = new Date();
-    
+
     // Se a senha foi alterada e não está hasheada, hash ela
     if (updates.pass && !updates.pass.startsWith('$2a$') && !updates.pass.startsWith('$2b$')) {
         updates.pass = await hashPassword(updates.pass);
     }
-    
+
     return { ...userData, ...updates };
 }
 
 // Função para validar dados de login
 function validateLoginData(email, senha) {
     const errors = [];
-    
+
     if (!email || typeof email !== 'string') {
         errors.push('Email é obrigatório e deve ser uma string');
     }
-    
+
     if (!senha || typeof senha !== 'string') {
         errors.push('Senha é obrigatória e deve ser uma string');
     }
-    
+
     return {
         isValid: errors.length === 0,
         errors
